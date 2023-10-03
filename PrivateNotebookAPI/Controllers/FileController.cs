@@ -1,12 +1,11 @@
-﻿using System.IO;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using PrivateNotebookAPI.Crypto;
 using PrivateNotebookAPI.Models;
 using PrivateNotebookAPI.Persistence;
 
 namespace PrivateNotebookAPI.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/[controller]s")]
     [ApiController]
     public class FileController : ControllerBase
     {
@@ -16,7 +15,7 @@ namespace PrivateNotebookAPI.Controllers
             _authDbContext = authDbContext;
 
         [HttpPost]
-        [Route("textbook/{id}")]
+        [Route("{id}")]
         public async Task<ActionResult> CreateFile(Guid id, [FromBody] CreateFile createFile)
         {
             string path = @$"UserFiles\{id}\{createFile.FileName}.txt";
@@ -31,37 +30,53 @@ namespace PrivateNotebookAPI.Controllers
             return NoContent();
         }
 
-        [HttpGet]
-        [Route("textbook/{id}")]
+        [HttpPut]
+        [Route("{id}")]
         public async Task<ActionResult<GetFileVm>> GetFile(Guid id, [FromBody] GetFile getFile)
         {
             string path = @$"UserFiles\{id}\{getFile.FileName}.txt";
             var user = _authDbContext.Users.FirstOrDefault(u => u.Id == id);
             if (user is null) return NotFound("User was not found");
-            if (!System.IO.File.Exists(@$"\{id}\{getFile.FileName}.txt")) return NotFound("File with such name does not exist");
+            if (!System.IO.File.Exists(path)) return NotFound("File with such name does not exist");
             // read file and send content encr by session key
             string content = System.IO.File.ReadAllText(path);
             string sessionKey = Serpent.CreateSessionKey();
-            string encrSessionKey = RSA.Encrypt(user.RSAOpenKey, sessionKey);
-            string encrContent = Serpent.Encrypt(sessionKey, content);
-            return new GetFileVm() { SessionKey = encrSessionKey, Content = encrContent};
+            //string encrSessionKey = RSA.Encrypt(user.RSAOpenKey, sessionKey);
+            //string encrContent = Serpent.Encrypt(sessionKey, content);
+            //return new GetFileVm() { SessionKey = encrSessionKey, Content = encrContent};
+            return new GetFileVm() { SessionKey = sessionKey, Content = content};
+        }
+
+        [HttpGet]
+        [Route("{id}")]
+        public async Task<ActionResult<GetFileListVm>> GetFileList(Guid id)
+        {
+            string path = @$"UserFiles\{id}";
+            var user = _authDbContext.Users.FirstOrDefault(u => u.Id == id);
+            if (user is null) return NotFound("User was not found");
+            if (!System.IO.Directory.Exists(path)) return NotFound("File with such name does not exist");
+            var files = Directory.GetFiles(path);
+            List<string> filenames = new List<string>();
+            foreach (var file in files)
+                   filenames.Add(Path.GetFileName(file));
+            return new GetFileListVm() { Filenames =  filenames };
         }
 
         [HttpPatch]
-        [Route("textbook/{id}")]
+        [Route("{id}")]
         public async Task<ActionResult> PatchFile(Guid id, [FromBody] PatchFile patchFile)
         {
             string path = @$"UserFiles\{id}\{patchFile.FileName}.txt";
             var user = _authDbContext.Users.FirstOrDefault(u => u.Id == id);
             if (user is null) return NotFound("User was not found");
-            if (!System.IO.File.Exists($"/{id}/{patchFile.FileName}.txt")) return NotFound("File with such name does not exist");
+            if (!System.IO.File.Exists(path)) return NotFound("File with such name does not exist");
             // change file content
             System.IO.File.WriteAllText(path, patchFile.Content);
             return NoContent();
         }
 
         [HttpDelete]
-        [Route("textbook/{id}")]
+        [Route("{id}")]
         public async Task<ActionResult> DeleteFile(Guid id, [FromBody] DeleteFile deleteFile)
         {
             string path = @$"UserFiles\{id}\{deleteFile.FileName}.txt";

@@ -8,7 +8,7 @@ using PrivateNotebookAPI.Crypto;
 
 namespace PrivateNotebookAPI.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api")]
     [ApiController]
     public class AuthController : ControllerBase
     {
@@ -18,7 +18,7 @@ namespace PrivateNotebookAPI.Controllers
             _authDbContext = authDbContext;
 
         [HttpPost]
-        [Route("login")]
+        [Route("auth/login")]
         public async Task<ActionResult<Guid>> Login([FromBody] Login login)
         {
             var user = _authDbContext.Users.FirstOrDefault(u => u.Email == login.Email);
@@ -29,7 +29,7 @@ namespace PrivateNotebookAPI.Controllers
         }
 
         [HttpPost]
-        [Route("register")]
+        [Route("auth/register")]
         public async Task<ActionResult<Guid>> Register([FromBody] Register register)
         {
             var user = _authDbContext.Users.FirstOrDefault(u => u.Email == register.Email);
@@ -42,6 +42,8 @@ namespace PrivateNotebookAPI.Controllers
                 Email = register.Email,
                 PasswordHash = Hash.GetHashString(register.Password),
             });
+            string path = $@"UserFiles\{id}";
+            Directory.CreateDirectory(path);
             await _authDbContext.SaveChangesAsync();
 
             return Ok(id);
