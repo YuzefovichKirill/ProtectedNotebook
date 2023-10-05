@@ -9,16 +9,15 @@ export default class AuthService {
     
   }
   
-  createFile(body) {
+  register(body) {
     return this.AuthAPI.post('register', body)
   }
 
-  getFile(body) {
+  login(body) {
     return this.AuthAPI.post('login', body)
   }
 
   changeRSAKey(id, body) {
     return this.AuthAPI.patch(`change-rsa-key/${id}`, body)
   }
-
 }

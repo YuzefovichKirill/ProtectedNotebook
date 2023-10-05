@@ -6,7 +6,8 @@ namespace PrivateNotebookAPI.DbModels
     {
         public Guid Id { get; set; }
         public string Email { get; set; }
-        public BigInteger RSAOpenKey { get; set; }
+        public string? RSAOpenKey { get; set; }
+        public string? RSAModule { get; set; }
         public string PasswordHash { get; set; }
     }
 }

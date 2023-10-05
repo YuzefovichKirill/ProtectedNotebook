@@ -2,6 +2,6 @@
 {
     public class DeleteFile
     {
-        public string FileName { get; set; }
+        public string Filename { get; set; }
     }
 }

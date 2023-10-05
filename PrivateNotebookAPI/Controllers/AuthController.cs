@@ -1,14 +1,13 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.Win32;
 using PrivateNotebookAPI.DbModels;
 using PrivateNotebookAPI.Models;
 using PrivateNotebookAPI.Persistence;
-using System.Numerics;
 using PrivateNotebookAPI.Crypto;
+using Microsoft.EntityFrameworkCore;
 
 namespace PrivateNotebookAPI.Controllers
 {
-    [Route("api")]
+    [Route("api/[controller]")]
     [ApiController]
     public class AuthController : ControllerBase
     {
@@ -18,10 +17,10 @@ namespace PrivateNotebookAPI.Controllers
             _authDbContext = authDbContext;
 
         [HttpPost]
-        [Route("auth/login")]
+        [Route("login")]
         public async Task<ActionResult<Guid>> Login([FromBody] Login login)
         {
-            var user = _authDbContext.Users.FirstOrDefault(u => u.Email == login.Email);
+            var user = await _authDbContext.Users.FirstOrDefaultAsync(u => u.Email == login.Email);
             if (user is null) return NotFound("Wrong email or password");
             if (user.PasswordHash != Hash.GetHashString(login.Password)) return BadRequest("Wrong email or password");
 
@@ -29,7 +28,7 @@ namespace PrivateNotebookAPI.Controllers
         }
 
         [HttpPost]
-        [Route("auth/register")]
+        [Route("register")]
         public async Task<ActionResult<Guid>> Register([FromBody] Register register)
         {
             var user = _authDbContext.Users.FirstOrDefault(u => u.Email == register.Email);
@@ -51,11 +50,12 @@ namespace PrivateNotebookAPI.Controllers
 
         [HttpPatch]
         [Route("change-rsa-key/{id}")]
-        public async Task<ActionResult> ChangeRSAKey(Guid id, [FromBody] BigInteger RSAKey)
+        public async Task<ActionResult> ChangeRSAKey(Guid id, [FromBody] ChangeRSAKey changeRSAKey)
         {
             var user = _authDbContext.Users.FirstOrDefault(u => u.Id == id);
             if (user is null) return NotFound("User was not found");
-            user.RSAOpenKey = RSAKey;
+            user.RSAOpenKey = changeRSAKey.RSAKey;
+            user.RSAModule = changeRSAKey.Module;
             await _authDbContext.SaveChangesAsync();
             return NoContent();
         }

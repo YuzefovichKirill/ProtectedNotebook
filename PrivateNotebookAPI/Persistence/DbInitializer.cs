@@ -1,6 +1,4 @@
-﻿using auth_server.Persistence;
-
-namespace PrivateNotebookAPI.Persistence
+﻿namespace PrivateNotebookAPI.Persistence
 {
     public class DbInitializer
     {

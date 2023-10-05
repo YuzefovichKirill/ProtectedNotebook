@@ -1,14 +1,14 @@
 import React, { useContext, useRef } from "react"
 import { useNavigate } from "react-router-dom"
 import "./form.css"
-import Service from "../Service"
+import AuthService from "../services/AuthService"
 import { AuthContext } from "../auth-context"
 
 const Login = () => {
   const {setUserId} = useContext(AuthContext)
 
   var navigate = useNavigate()
-  const service = new Service()
+  const authService = new AuthService()
 
   const email = useRef(null) 
   const password = useRef(null) 
@@ -22,10 +22,10 @@ const Login = () => {
     loginForm.email = email.current.value
     loginForm.password = password.current.value
 
-    service.login(loginForm)
+    authService.login(loginForm)
       .then((userId) => {
         setUserId(userId.data)
-        navigate('/info' , { replace: true}) 
+        navigate('/files/list' , { replace: true}) 
       })
       .catch((error) => alert(error.response.data))
   }

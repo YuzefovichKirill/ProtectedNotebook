@@ -18,7 +18,7 @@ namespace PrivateNotebookAPI.Controllers
         [Route("{id}")]
         public async Task<ActionResult> CreateFile(Guid id, [FromBody] CreateFile createFile)
         {
-            string path = @$"UserFiles\{id}\{createFile.FileName}.txt";
+            string path = @$"UserFiles\{id}\{createFile.Filename}";
             var user = _authDbContext.Users.FirstOrDefault(u => u.Id == id);
             if (user is null) return NotFound("User was not found");
             if (System.IO.File.Exists(path)) return BadRequest("File with such name already exists");
@@ -30,21 +30,22 @@ namespace PrivateNotebookAPI.Controllers
             return NoContent();
         }
 
-        [HttpPut]
+        [HttpPut] //////////////////
         [Route("{id}")]
         public async Task<ActionResult<GetFileVm>> GetFile(Guid id, [FromBody] GetFile getFile)
         {
-            string path = @$"UserFiles\{id}\{getFile.FileName}.txt";
+            string path = @$"UserFiles\{id}\{getFile.Filename}";
             var user = _authDbContext.Users.FirstOrDefault(u => u.Id == id);
             if (user is null) return NotFound("User was not found");
             if (!System.IO.File.Exists(path)) return NotFound("File with such name does not exist");
             // read file and send content encr by session key
             string content = System.IO.File.ReadAllText(path);
             string sessionKey = Serpent.CreateSessionKey();
-            //string encrSessionKey = RSA.Encrypt(user.RSAOpenKey, sessionKey);
-            //string encrContent = Serpent.Encrypt(sessionKey, content);
-            //return new GetFileVm() { SessionKey = encrSessionKey, Content = encrContent};
-            return new GetFileVm() { SessionKey = sessionKey, Content = content};
+            return new GetFileVm() { SessionKey = sessionKey, Content = content };
+            
+            string encrSessionKey = RSA.Encrypt(user.RSAOpenKey, user.RSAModule, sessionKey);
+            string encrContent = Serpent.Encrypt(sessionKey, content);
+            return new GetFileVm() { SessionKey = encrSessionKey, Content = encrContent };
         }
 
         [HttpGet]
@@ -66,7 +67,7 @@ namespace PrivateNotebookAPI.Controllers
         [Route("{id}")]
         public async Task<ActionResult> PatchFile(Guid id, [FromBody] PatchFile patchFile)
         {
-            string path = @$"UserFiles\{id}\{patchFile.FileName}.txt";
+            string path = @$"UserFiles\{id}\{patchFile.Filename}";
             var user = _authDbContext.Users.FirstOrDefault(u => u.Id == id);
             if (user is null) return NotFound("User was not found");
             if (!System.IO.File.Exists(path)) return NotFound("File with such name does not exist");
@@ -76,10 +77,10 @@ namespace PrivateNotebookAPI.Controllers
         }
 
         [HttpDelete]
-        [Route("{id}")]
-        public async Task<ActionResult> DeleteFile(Guid id, [FromBody] DeleteFile deleteFile)
+        [Route("{id}&{filename}")]
+        public async Task<ActionResult> DeleteFile(Guid id, string filename)
         {
-            string path = @$"UserFiles\{id}\{deleteFile.FileName}.txt";
+            string path = @$"UserFiles\{id}\{filename}";
             var user = _authDbContext.Users.FirstOrDefault(u => u.Id == id);
             if (user is null) return NotFound("User was not found");
             if (!System.IO.File.Exists(path)) return NotFound("File with such name does not exist");

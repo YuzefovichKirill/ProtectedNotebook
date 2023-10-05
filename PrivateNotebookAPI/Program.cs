@@ -28,6 +28,7 @@ namespace PrivateNotebookAPI
                     policy.AllowAnyOrigin();
                 });
             });
+            services.AddSwaggerGen();
 
             JsonConvert.DefaultSettings = () =>
             {
@@ -53,6 +54,13 @@ namespace PrivateNotebookAPI
                     return;
                 }
             }
+
+            if (app.Environment.IsDevelopment())
+            {
+                app.UseSwagger();
+                app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Ticket booking v1"));
+            }
+
             app.UseCors("AllowAll");
             app.UseRouting();
             app.UseHttpsRedirection();

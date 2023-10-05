@@ -2,13 +2,31 @@ import React, { useContext } from 'react'
 import './navbar.css'
 import { NavLink } from "react-router-dom";
 import { AuthContext } from './auth-context';
+import { RSAContext } from './rsa-context';
+import { genKey, defaultLength } from './crypto/RSA'
+import AuthService from './services/AuthService'
 
 const Navbar = () => {
   const { userId, setUserId } = useContext(AuthContext)
-  const removeUser = () => {
+  const { setRSAKey } = useContext(RSAContext)
+  var authService = new AuthService()
+
+  const removeUser = (event) => {
+    event.preventDefault()
     setUserId(null)
   } 
 
+  const changeRSAKeys = (event) => {
+    event.preventDefault()
+    var { e, n, d } = genKey(defaultLength)
+    console.log(e, n, d)
+    const body = {
+      RSAKey: e,
+      module: n
+    }
+    setRSAKey(d)
+    authService.changeRSAKey(userId, body)
+  }
   return (
     <nav>
       <div className='link-group'>
@@ -23,6 +41,7 @@ const Navbar = () => {
         </NavLink>
 
         {(userId !== null) && <button onClick={removeUser}>Logout</button>}
+        {(userId !== null) && <button onClick={changeRSAKeys}>Change RSA keys</button>}
       </div>
     </nav>
   )

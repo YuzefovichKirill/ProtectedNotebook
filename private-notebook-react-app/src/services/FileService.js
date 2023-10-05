@@ -9,22 +9,22 @@ export default class FileService {
   }
 
   createFile(id, body) {
-    return this.AuthAPI.post(`/${id}`, body)
+    return this.AuthAPI.post(`${id}`, body)
   }
 
   getFile(id, body) {
-    return this.AuthAPI.put(`/${id}`, body)
+    return this.AuthAPI.put(`${id}`, body)
   }
 
   getFileList(id) {
-    return this.AuthAPI.get(`/${id}`)
+    return this.AuthAPI.get(`${id}`)
   }
 
   patchFile(id, body) {
-    return this.AuthAPI.patch(`/${id}`, body)
+    return this.AuthAPI.patch(`${id}`, body)
   }
 
-  deleteFile(id, body) {
-    return this.AuthAPI.delete(`/${id}`, body)
+  deleteFile(id, filename) {
+    return this.AuthAPI.delete(`${id}&${filename}`)
   }
 }
