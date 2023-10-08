@@ -2,6 +2,8 @@
 using PrivateNotebookAPI.Crypto;
 using PrivateNotebookAPI.Models;
 using PrivateNotebookAPI.Persistence;
+using System.Numerics;
+using System.Text;
 
 namespace PrivateNotebookAPI.Controllers
 {
@@ -40,12 +42,11 @@ namespace PrivateNotebookAPI.Controllers
             if (!System.IO.File.Exists(path)) return NotFound("File with such name does not exist");
             // read file and send content encr by session key
             string content = System.IO.File.ReadAllText(path);
-            string sessionKey = Serpent.CreateSessionKey();
-            return new GetFileVm() { SessionKey = sessionKey, Content = content };
-            
+            BigInteger sessionKey = Serpent.CreateSessionKey();
+
             string encrSessionKey = RSA.Encrypt(user.RSAOpenKey, user.RSAModule, sessionKey);
             string encrContent = Serpent.Encrypt(sessionKey, content);
-            return new GetFileVm() { SessionKey = encrSessionKey, Content = encrContent };
+            return new GetFileVm() { SessionKey = encrSessionKey, Content = content };
         }
 
         [HttpGet]

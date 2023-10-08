@@ -1,6 +1,5 @@
 const bigInt = require('big-integer');
-
-export const defaultLength = 1200
+export const defaultLength = 2048
 
 const genPrime = (l) => {
   const min = bigInt.one.shiftLeft(l - 1)
@@ -28,37 +27,34 @@ export const genKey = (l) => {
   return {e, n: p.multiply(q), d: e.modInv(totient)}
 }
 
-export const encrypt = (encodedMsg, n, e) => {
-  return bigInt(encodedMsg).modPow(e, n);
+// export const encrypt = (msg, n, e) => {
+//   var encodedMsg = encode(msg)
+//   var encodedCipherText = bigInt(encodedMsg).modPow(e, n)
+//   return decode(encodedCipherText)
+// }
+
+export const RSADecrypt = (cipherText, d, n) => {
+  var encodedCipherText = encode(cipherText)
+  var encodedMsg = bigInt(encodedCipherText).modPow(bigInt(d), bigInt(n))
+  //console.log('key in bigInt: ', encodedMsg)
+  return decode(encodedMsg)
 }
 
-export const decrypt = (encryptedMsg, d, n) => {
-  return bigInt(encryptedMsg).modPow(d, n); 
-}
-
+// base64 to bigInt
 export const encode = (str) => {
-  const codes = str
-    .split('')
-    .map(i => i.charCodeAt())
-    .join('');
-
-  return bigInt(codes);
+  return bigInt(atob(str), 10)
 }
 
+// bigInt to byte[]
 export const decode = (code) => {
-  const stringified = code.toString();
-  let string = '';
+  const stringified = code.toString(16);
 
-  for (let i = 0; i < stringified.length; i += 2) {
-    let num = Number(stringified.substr(i, 2));
-    
-    if (num <= 30) {
-      string += String.fromCharCode(Number(stringified.substr(i, 3)));
-      i++;
-    } else {
-      string += String.fromCharCode(num);
-    }
+  var bytes = []
+  for (var i = 0; i < stringified.length; i += 2) {
+    var byte = parseInt(stringified.substring(i, i + 2), 16);
+    bytes.push(byte)
   }
-
-  return string;
+  bytes = bytes.reverse()
+  //console.log('key bytes: ', bytes)
+  return bytes
 }

@@ -8,7 +8,7 @@ import AuthService from './services/AuthService'
 
 const Navbar = () => {
   const { userId, setUserId } = useContext(AuthContext)
-  const { setRSAKey } = useContext(RSAContext)
+  const { setRSAKey, setRSAModule } = useContext(RSAContext)
   var authService = new AuthService()
 
   const removeUser = (event) => {
@@ -19,12 +19,12 @@ const Navbar = () => {
   const changeRSAKeys = (event) => {
     event.preventDefault()
     var { e, n, d } = genKey(defaultLength)
-    console.log(e, n, d)
     const body = {
       RSAKey: e,
       module: n
     }
     setRSAKey(d)
+    setRSAModule(n)
     authService.changeRSAKey(userId, body)
   }
   return (

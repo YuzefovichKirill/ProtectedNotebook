@@ -4,6 +4,7 @@ export const RSAContext = React.createContext()
 
 const RSAProvider = ({children}) => {
   const [RSAKey, setRSAKey] = useState(localStorage.getItem('RSAKey'))
+  const [RSAModule, setRSAModule] = useState(localStorage.getItem('RSAModule'))
 
   useEffect(() => {
     if (RSAKey === null) {
@@ -14,10 +15,22 @@ const RSAProvider = ({children}) => {
     }
   }, [RSAKey])
 
+  useEffect(() => {
+    if (RSAModule === null) {
+      localStorage.removeItem('RSAModule')
+    }
+    else {
+      localStorage.setItem('RSAModule', RSAModule)
+    }
+  }, [RSAModule])
+
   return (
     <RSAContext.Provider
       value={{
-        setRSAKey
+        RSAKey,
+        RSAModule,
+        setRSAKey,
+        setRSAModule
       }}>
       {children}
     </RSAContext.Provider>

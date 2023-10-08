@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Numerics;
+using System.Text;
 
 namespace PrivateNotebookAPI.Crypto
 {
@@ -7,23 +8,21 @@ namespace PrivateNotebookAPI.Crypto
         private static readonly int KeyLength = 128; // 128, 192, 256
         private static readonly int KeyLengthBytes = KeyLength/8;
 
-        public static string Encrypt(string sessionKey, string content)
+        public static string Encrypt(BigInteger sessionKey, string content)
         {
+            var a =  sessionKey.ToByteArray();
+            return "serpent.encrypt.not-implemented";
             throw new NotImplementedException();
         }
 
-        public static string CreateSessionKey()
-        {
-            StringBuilder sb = new();
-            Random random = new();
-            for (int i = 0; i < KeyLengthBytes; i++)
-                sb.Append((char)random.Next(0, 256));
-            return sb.ToString();
-
-            /*Byte[] key = new Byte[KeyLengthBits];
-            var rand = new Random();
+        public static BigInteger CreateSessionKey()
+        {    
+            byte[] key = new byte[KeyLengthBytes];
+            var rand = new Random(12);
             rand.NextBytes(key);
-            return key.ToString();*/
+            key[15] = 0x7F;
+            BigInteger _key = new BigInteger(key);
+            return _key;
         }
     }
 }
