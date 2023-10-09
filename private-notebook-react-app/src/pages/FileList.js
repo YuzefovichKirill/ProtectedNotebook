@@ -27,7 +27,6 @@ const FileList = () => {
           .catch((error) => alert(error.response.data))
       })
       .catch((error) => alert(error.response.data))	
-
   }
 
   return(

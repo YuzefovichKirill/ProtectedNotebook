@@ -11,6 +11,7 @@ namespace PrivateNotebookAPI.Crypto
         public static string Encrypt(BigInteger sessionKey, string content)
         {
             var a =  sessionKey.ToByteArray();
+
             return "serpent.encrypt.not-implemented";
             throw new NotImplementedException();
         }
