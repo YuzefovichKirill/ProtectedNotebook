@@ -32,7 +32,7 @@ namespace PrivateNotebookAPI.Controllers
             return NoContent();
         }
 
-        [HttpPut] //////////////////
+        [HttpPut]
         [Route("{id}")]
         public async Task<ActionResult<GetFileVm>> GetFile(Guid id, [FromBody] GetFile getFile)
         {
@@ -46,7 +46,7 @@ namespace PrivateNotebookAPI.Controllers
 
             string encrSessionKey = RSA.Encrypt(user.RSAOpenKey, user.RSAModule, sessionKey);
             string encrContent = Serpent.Encrypt(sessionKey, content);
-            return new GetFileVm() { SessionKey = encrSessionKey, Content = content };
+            return new GetFileVm() { SessionKey = encrSessionKey, Content = encrContent };
         }
 
         [HttpGet]
