@@ -12,13 +12,22 @@ export default class Serpent {
   }
   
   // sessionKey: bytes[], encrContent: base64 string
-  Decrypt(sessionKey, encrContent) {
+  Decrypt(sessionKey, IV_base64, encrContent) {
     var content = this.base64ToArrayBuffer(encrContent)
-    //var IV = this.base64ToArrayBuffer(IV_base64)
-    var decrContent = new Uint8Array(content.length)
+    var IV = this.base64ToArrayBuffer(IV_base64)
+    var decrContent = new Uint8Array()
     this.makeSubkeys(sessionKey)
-    this.DecryptBlock(content, 0, decrContent, 0)
-    
+    var encryptedIV = new Uint8Array(IV)
+    var prevEncryptedIV = new Uint8Array(IV)
+    var iterationsNum = content.length / 16
+    for(let i = 0; i < iterationsNum; i++)
+    {
+      this.EncryptBlock(prevEncryptedIV, 0, encryptedIV, 0)
+      var xor = this.XorBytes(encryptedIV, content.slice(16*i, 16*(i+1)))
+      decrContent =  new Uint8Array([...decrContent, ...xor])
+      prevEncryptedIV = new Uint8Array(encryptedIV)
+      
+    }
     let ln = 0
     for (let i = 0; i < decrContent.length; i++) {
       if (decrContent[i] === 0) break;
@@ -131,6 +140,51 @@ export default class Serpent {
     this.w[128] = this.X0; this.w[129] = this.X1; this.w[130] = this.X2; this.w[131] = this.X3;
   }
 
+  EncryptBlock(input, inOff, output, outOff) {
+    this.X0 = this.ToInt(input, inOff);
+    this.X1 = this.ToInt(input, inOff + 4);
+    this.X2 = this.ToInt(input, inOff + 8);
+    this.X3 = this.ToInt(input, inOff + 12);
+
+    this.Sb0(this.w[0] ^ this.X0, this.w[1] ^ this.X1, this.w[2] ^ this.X2, this.w[3] ^ this.X3); this.LT();
+    this.Sb1(this.w[4] ^ this.X0, this.w[5] ^ this.X1, this.w[6] ^ this.X2, this.w[7] ^ this.X3); this.LT();
+    this.Sb2(this.w[8] ^ this.X0, this.w[9] ^ this.X1, this.w[10] ^ this.X2, this.w[11] ^ this.X3); this.LT();
+    this.Sb3(this.w[12] ^ this.X0, this.w[13] ^ this.X1, this.w[14] ^ this.X2, this.w[15] ^ this.X3); this.LT();
+    this.Sb4(this.w[16] ^ this.X0, this.w[17] ^ this.X1, this.w[18] ^ this.X2, this.w[19] ^ this.X3); this.LT();
+    this.Sb5(this.w[20] ^ this.X0, this.w[21] ^ this.X1, this.w[22] ^ this.X2, this.w[23] ^ this.X3); this.LT();
+    this.Sb6(this.w[24] ^ this.X0, this.w[25] ^ this.X1, this.w[26] ^ this.X2, this.w[27] ^ this.X3); this.LT();
+    this.Sb7(this.w[28] ^ this.X0, this.w[29] ^ this.X1, this.w[30] ^ this.X2, this.w[31] ^ this.X3); this.LT();
+    this.Sb0(this.w[32] ^ this.X0, this.w[33] ^ this.X1, this.w[34] ^ this.X2, this.w[35] ^ this.X3); this.LT();
+    this.Sb1(this.w[36] ^ this.X0, this.w[37] ^ this.X1, this.w[38] ^ this.X2, this.w[39] ^ this.X3); this.LT();
+    this.Sb2(this.w[40] ^ this.X0, this.w[41] ^ this.X1, this.w[42] ^ this.X2, this.w[43] ^ this.X3); this.LT();
+    this.Sb3(this.w[44] ^ this.X0, this.w[45] ^ this.X1, this.w[46] ^ this.X2, this.w[47] ^ this.X3); this.LT();
+    this.Sb4(this.w[48] ^ this.X0, this.w[49] ^ this.X1, this.w[50] ^ this.X2, this.w[51] ^ this.X3); this.LT();
+    this.Sb5(this.w[52] ^ this.X0, this.w[53] ^ this.X1, this.w[54] ^ this.X2, this.w[55] ^ this.X3); this.LT();
+    this.Sb6(this.w[56] ^ this.X0, this.w[57] ^ this.X1, this.w[58] ^ this.X2, this.w[59] ^ this.X3); this.LT();
+    this.Sb7(this.w[60] ^ this.X0, this.w[61] ^ this.X1, this.w[62] ^ this.X2, this.w[63] ^ this.X3); this.LT();
+    this.Sb0(this.w[64] ^ this.X0, this.w[65] ^ this.X1, this.w[66] ^ this.X2, this.w[67] ^ this.X3); this.LT();
+    this.Sb1(this.w[68] ^ this.X0, this.w[69] ^ this.X1, this.w[70] ^ this.X2, this.w[71] ^ this.X3); this.LT();
+    this.Sb2(this.w[72] ^ this.X0, this.w[73] ^ this.X1, this.w[74] ^ this.X2, this.w[75] ^ this.X3); this.LT();
+    this.Sb3(this.w[76] ^ this.X0, this.w[77] ^ this.X1, this.w[78] ^ this.X2, this.w[79] ^ this.X3); this.LT();
+    this.Sb4(this.w[80] ^ this.X0, this.w[81] ^ this.X1, this.w[82] ^ this.X2, this.w[83] ^ this.X3); this.LT();
+    this.Sb5(this.w[84] ^ this.X0, this.w[85] ^ this.X1, this.w[86] ^ this.X2, this.w[87] ^ this.X3); this.LT();
+    this.Sb6(this.w[88] ^ this.X0, this.w[89] ^ this.X1, this.w[90] ^ this.X2, this.w[91] ^ this.X3); this.LT();
+    this.Sb7(this.w[92] ^ this.X0, this.w[93] ^ this.X1, this.w[94] ^ this.X2, this.w[95] ^ this.X3); this.LT();
+    this.Sb0(this.w[96] ^ this.X0, this.w[97] ^ this.X1, this.w[98] ^ this.X2, this.w[99] ^ this.X3); this.LT();
+    this.Sb1(this.w[100] ^ this.X0, this.w[101] ^ this.X1, this.w[102] ^ this.X2, this.w[103] ^ this.X3); this.LT();
+    this.Sb2(this.w[104] ^ this.X0, this.w[105] ^ this.X1, this.w[106] ^ this.X2, this.w[107] ^ this.X3); this.LT();
+    this.Sb3(this.w[108] ^ this.X0, this.w[109] ^ this.X1, this.w[110] ^ this.X2, this.w[111] ^ this.X3); this.LT();
+    this.Sb4(this.w[112] ^ this.X0, this.w[113] ^ this.X1, this.w[114] ^ this.X2, this.w[115] ^ this.X3); this.LT();
+    this.Sb5(this.w[116] ^ this.X0, this.w[117] ^ this.X1, this.w[118] ^ this.X2, this.w[119] ^ this.X3); this.LT();
+    this.Sb6(this.w[120] ^ this.X0, this.w[121] ^ this.X1, this.w[122] ^ this.X2, this.w[123] ^ this.X3); this.LT();
+    this.Sb7(this.w[124] ^ this.X0, this.w[125] ^ this.X1, this.w[126] ^ this.X2, this.w[127] ^ this.X3);
+
+    this.ToBytes((this.w[128] ^ this.X0), output, outOff);
+    this.ToBytes((this.w[129] ^ this.X1), output, outOff + 4);
+    this.ToBytes((this.w[130] ^ this.X2), output, outOff + 8);
+    this.ToBytes((this.w[131] ^ this.X3), output, outOff + 12);
+  }
+
   DecryptBlock(input, inOff, output, outOff) {
     this.X0 = this.w[128] ^ this.ToInt(input, inOff)
     this.X1 = this.w[129] ^ this.ToInt(input, inOff+4)
@@ -207,16 +261,18 @@ export default class Serpent {
     this.ToBytes((this.w[3] ^ this.X3), output, outOff + 12);
   }
 
-  InverseLT() {
-    // var x2 = this.RotateRight(this.X2, 22) ^ this.X3 ^ (this.X1 << 7);
-    // var x0 = this.RotateRight(this.X0, 5) ^ this.X1 ^ this.X3;
-    // var x3 = this.RotateRight(this.X3, 7);
-    // var x1 = this.RotateRight(this.X1, 1);
-    // this.X3 = x3 ^ x2 ^ (x0 << 3);
-    // this.X1 = x1 ^ x0 ^ x2;
-    // this.X2 = this.RotateRight(x2, 3);
-    // this.X0 = this.RotateRight(x0, 13);
+  LT() {
+    let x0 = this.RotateLeft(this.X0, 13);
+    let x2 = this.RotateLeft(this.X2, 3);
+    let x1 = this.X1 ^ x0 ^ x2;
+    let x3 = this.X3 ^ x2 ^ x0 << 3;
+    this.X1 = this.RotateLeft(x1, 1);
+    this.X3 = this.RotateLeft(x3, 7);
+    this.X0 = this.RotateLeft(x0 ^ this.X1 ^ this.X3, 5);
+    this.X2 = this.RotateLeft(x2 ^ this.X3 ^ (this.X1 << 7), 22);
+  }
 
+  InverseLT() {
     var x2 = this.RotateLeft(this.X2, 10) ^ this.X3 ^ (this.X1 << 7);
     var x0 = this.RotateLeft(this.X0, 27) ^ this.X1 ^ this.X3;
     var x3 = this.RotateLeft(this.X3, 25);
@@ -227,12 +283,15 @@ export default class Serpent {
     this.X0 = this.RotateLeft(x0, 19);
   }
 
+  XorBytes(a, b) {
+    return Uint8Array.from(a, (v, i) => v ^ b[i])
+  }
   RotateLeft(i, distance) { 
     return (i << distance) | (i >>> (32 - distance))
   }
-  RotateRight(i, distance) {
-    return (i >> distance) | (i << -distance);
-  }
+  // RotateRight(i, distance) {
+  //   return (i >> distance) | (i << -distance);
+  // }
 
   ToInt(bs, off) {
     return bs[off] | bs[off+1]<< 8 | bs[off+2]<<16 | bs[off+3]<<24

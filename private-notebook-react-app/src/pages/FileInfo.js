@@ -24,8 +24,7 @@ const FileInfo = () => {
         
         const sessionKey = RSADecrypt(_file.data.sessionKey, RSAKey, RSAModule)
         var serpent = new Serpent()
-        const content = serpent.Decrypt(sessionKey, _file.data.content)
-        //const content = serpent.Decrypt(sessionKey,_file.data.IV, _file.data.content)
+        const content = serpent.Decrypt(sessionKey, _file.data.iv, _file.data.content)
         setFile(content)
       })
       .catch((error) => {

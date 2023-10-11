@@ -45,8 +45,8 @@ namespace PrivateNotebookAPI.Controllers
             BigInteger sessionKey = Serpent.CreateSessionKey();
 
             string encrSessionKey = RSA.Encrypt(user.RSAOpenKey, user.RSAModule, sessionKey);
-            string encrContent = Serpent.Encrypt(sessionKey, content);
-            return new GetFileVm() { SessionKey = encrSessionKey, Content = encrContent };
+            (string iv, string encrContent) = Serpent.Encrypt(sessionKey, content);
+            return new GetFileVm() { SessionKey = encrSessionKey, IV = iv, Content = encrContent };
         }
 
         [HttpGet]

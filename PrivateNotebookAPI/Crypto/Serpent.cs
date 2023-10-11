@@ -1,7 +1,6 @@
 ﻿using System.Numerics;
 using System.Reflection.Metadata.Ecma335;
 using System.Text;
-using System.Numerics;
 using System.Buffers.Binary;
 
 namespace PrivateNotebookAPI.Crypto
@@ -15,15 +14,15 @@ namespace PrivateNotebookAPI.Crypto
         private static readonly int KeyLength = 128; // 128, 192, 256
         private static readonly int KeyLengthBytes = 16;
         
-        public static string Encrypt(BigInteger sessionKey, string content)
+        public static (string, string) Encrypt(BigInteger sessionKey, string content)
         {
             var len = content.Length;
             while (len % 16 != 0) len++;
             var ivBigInt = CreateSessionKey();
             char[] contentArr = content.ToCharArray();
             byte[] iv = ivBigInt.ToByteArray();
-            /*byte[] encryptedIV = ivBigInt.ToByteArray();
-            byte[] prevEncryptedIV = ivBigInt.ToByteArray();*/
+            byte[] encryptedIV = ivBigInt.ToByteArray();
+            byte[] prevEncryptedIV = ivBigInt.ToByteArray();
             byte[] pt = new byte[len];
             byte[] key = sessionKey.ToByteArray();
             byte[] ct = new byte[len];
@@ -32,20 +31,28 @@ namespace PrivateNotebookAPI.Crypto
                 pt[i] = (byte)contentArr[i];
             
             MakeSubkeys(key);
-            EncryptBlock(pt, 0, ct, 0);
-            /*int iterationsNum = len / 16;
+            int iterationsNum = len / 16;
             for (int i = 0; i < iterationsNum; i++)
             {
                 EncryptBlock(prevEncryptedIV, 0, encryptedIV, 0);
-                Array.Copy(XorBytes(encryptedIV, pt.Skip(i*16).Take(16).ToArray()), ct, 16);
+                var xor = XorBytes(encryptedIV, pt.Skip(i * 16).Take(16).ToArray());
+                Array.Copy(xor, 0, ct, 16*i, 16);
+                Array.Copy(encryptedIV, prevEncryptedIV, 16);
+            }
+            //EncryptBlock(pt, 0, ct, 0);
+            /*DecryptBlock(ct, 0, pt2, 0);*/
+            /*var pt2 = new byte[len];
+            prevEncryptedIV = ivBigInt.ToByteArray();
+            encryptedIV = ivBigInt.ToByteArray();
+            for (int i = 0; i < iterationsNum; i++)
+            {
+                DecryptBlock(prevEncryptedIV, 0, encryptedIV, 0);
+                var xor = XorBytes(encryptedIV, ct.Skip(i * 16).Take(16).ToArray());
+                Array.Copy(xor, pt2, 16);
                 Array.Copy(encryptedIV, prevEncryptedIV, 16);
             }*/
-            
-            /*var pt2 = Encoding.UTF8.GetBytes("                ");*/
-            /*DecryptBlock(ct, 0, pt2, 0);*/
 
-
-            return Convert.ToBase64String(ct);
+            return (Convert.ToBase64String(iv), Convert.ToBase64String(ct));
         }
 
         public static BigInteger CreateSessionKey()
@@ -383,10 +390,6 @@ namespace PrivateNotebookAPI.Crypto
             X0 = (~t11) ^ (X3 & X2);
         }
 
-
-
-        //////////////////////////
-        ///
         public static void DecryptBlock(byte[] input, int inOff, byte[] output, int outOff)
         {
             X0 = w[128] ^ (int)ToInt(input, inOff);
