@@ -4,7 +4,7 @@ import { useLocation } from "react-router-dom"
 import { AuthContext } from "../auth-context"
 import { RSAContext } from "../rsa-context"
 import { RSADecrypt } from "../crypto/RSA"
-import { SerpentDecrypt } from "../crypto/Serpent"
+import Serpent from "../crypto/Serpent"
 
 const FileInfo = () => {
   var location = useLocation()
@@ -23,9 +23,10 @@ const FileInfo = () => {
       .then(_file => {
         
         const sessionKey = RSADecrypt(_file.data.sessionKey, RSAKey, RSAModule)
-      
-        //const content = SerpentDecrypt(sessionKey, _file.data.content)
-        //setFile(content)
+        var serpent = new Serpent()
+        const content = serpent.Decrypt(sessionKey, _file.data.content)
+        //const content = serpent.Decrypt(sessionKey,_file.data.IV, _file.data.content)
+        setFile(content)
       })
       .catch((error) => {
         alert(JSON.stringify(error))
@@ -44,7 +45,7 @@ const FileInfo = () => {
       <div className="form-row">
         <div className="input-data">
           <div>Content</div>
-          <div>{file?.content}</div>
+          <div>{file}</div>
         </div>
       </div>
     </div>

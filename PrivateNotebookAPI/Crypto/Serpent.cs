@@ -17,21 +17,32 @@ namespace PrivateNotebookAPI.Crypto
         
         public static string Encrypt(BigInteger sessionKey, string content)
         {
-            // change iv to generation
-            
+            var len = content.Length;
+            while (len % 16 != 0) len++;
+            var ivBigInt = CreateSessionKey();
             char[] contentArr = content.ToCharArray();
-            byte[] iv = sessionKey.ToByteArray();
-            byte[] pt = new byte[contentArr.Length];
+            byte[] iv = ivBigInt.ToByteArray();
+            /*byte[] encryptedIV = ivBigInt.ToByteArray();
+            byte[] prevEncryptedIV = ivBigInt.ToByteArray();*/
+            byte[] pt = new byte[len];
             byte[] key = sessionKey.ToByteArray();
-            byte[] ct = new byte[contentArr.Length];
+            byte[] ct = new byte[len];
 
-
-            pt = Encoding.UTF8.GetBytes("abcdefghijklmnop");
-            key = Encoding.UTF8.GetBytes("abcdefghijklmnop");
-            ct = Encoding.UTF8.GetBytes("abcdefghijklmnop");
+            for (int i = 0; i < contentArr.Length; i++)
+                pt[i] = (byte)contentArr[i];
+            
             MakeSubkeys(key);
             EncryptBlock(pt, 0, ct, 0);
-
+            /*int iterationsNum = len / 16;
+            for (int i = 0; i < iterationsNum; i++)
+            {
+                EncryptBlock(prevEncryptedIV, 0, encryptedIV, 0);
+                Array.Copy(XorBytes(encryptedIV, pt.Skip(i*16).Take(16).ToArray()), ct, 16);
+                Array.Copy(encryptedIV, prevEncryptedIV, 16);
+            }*/
+            
+            /*var pt2 = Encoding.UTF8.GetBytes("                ");*/
+            /*DecryptBlock(ct, 0, pt2, 0);*/
 
 
             return Convert.ToBase64String(ct);
@@ -229,7 +240,7 @@ namespace PrivateNotebookAPI.Crypto
             bs[off + 3] = (byte)(n >> 24);
             }
 
-        public static byte[] Xor(byte[] a, byte[] b)
+        public static byte[] XorBytes(byte[] a, byte[] b)
         {
             if (a.Length != b.Length) throw new ArgumentException("Different bytes length");
 
@@ -370,6 +381,232 @@ namespace PrivateNotebookAPI.Crypto
             int t12 = X3 & t11;
             X2 = t3 ^ t12;
             X0 = (~t11) ^ (X3 & X2);
+        }
+
+
+
+        //////////////////////////
+        ///
+        public static void DecryptBlock(byte[] input, int inOff, byte[] output, int outOff)
+        {
+            X0 = w[128] ^ (int)ToInt(input, inOff);
+            X1 = w[129] ^ (int)ToInt(input, inOff + 4);
+            X2 = w[130] ^ (int)ToInt(input, inOff + 8);
+            X3 = w[131] ^ (int)ToInt(input, inOff + 12);
+
+            Ib7(X0, X1, X2, X3);
+            X0 ^= w[124]; X1 ^= w[125]; X2 ^= w[126]; X3 ^= w[127];
+            InverseLT(); Ib6(X0, X1, X2, X3);
+            X0 ^= w[120]; X1 ^= w[121]; X2 ^= w[122]; X3 ^= w[123];
+            InverseLT(); Ib5(X0, X1, X2, X3);
+            X0 ^= w[116]; X1 ^= w[117]; X2 ^= w[118]; X3 ^= w[119];
+            InverseLT(); Ib4(X0, X1, X2, X3);
+            X0 ^= w[112]; X1 ^= w[113]; X2 ^= w[114]; X3 ^= w[115];
+            InverseLT(); Ib3(X0, X1, X2, X3);
+            X0 ^= w[108]; X1 ^= w[109]; X2 ^= w[110]; X3 ^= w[111];
+            InverseLT(); Ib2(X0, X1, X2, X3);
+            X0 ^= w[104]; X1 ^= w[105]; X2 ^= w[106]; X3 ^= w[107];
+            InverseLT(); Ib1(X0, X1, X2, X3);
+            X0 ^= w[100]; X1 ^= w[101]; X2 ^= w[102]; X3 ^= w[103];
+            InverseLT(); Ib0(X0, X1, X2, X3);
+            X0 ^= w[96]; X1 ^= w[97]; X2 ^= w[98]; X3 ^= w[99];
+            InverseLT(); Ib7(X0, X1, X2, X3);
+            X0 ^= w[92]; X1 ^= w[93]; X2 ^= w[94]; X3 ^= w[95];
+            InverseLT(); Ib6(X0, X1, X2, X3);
+            X0 ^= w[88]; X1 ^= w[89]; X2 ^= w[90]; X3 ^= w[91];
+            InverseLT(); Ib5(X0, X1, X2, X3);
+            X0 ^= w[84]; X1 ^= w[85]; X2 ^= w[86]; X3 ^= w[87];
+            InverseLT(); Ib4(X0, X1, X2, X3);
+            X0 ^= w[80]; X1 ^= w[81]; X2 ^= w[82]; X3 ^= w[83];
+            InverseLT(); Ib3(X0, X1, X2, X3);
+            X0 ^= w[76]; X1 ^= w[77]; X2 ^= w[78]; X3 ^= w[79];
+            InverseLT(); Ib2(X0, X1, X2, X3);
+            X0 ^= w[72]; X1 ^= w[73]; X2 ^= w[74]; X3 ^= w[75];
+            InverseLT(); Ib1(X0, X1, X2, X3);
+            X0 ^= w[68]; X1 ^= w[69]; X2 ^= w[70]; X3 ^= w[71];
+            InverseLT(); Ib0(X0, X1, X2, X3);
+            X0 ^= w[64]; X1 ^= w[65]; X2 ^= w[66]; X3 ^= w[67];
+            InverseLT(); Ib7(X0, X1, X2, X3);
+            X0 ^= w[60]; X1 ^= w[61]; X2 ^= w[62]; X3 ^= w[63];
+            InverseLT(); Ib6(X0, X1, X2, X3);
+            X0 ^= w[56]; X1 ^= w[57]; X2 ^= w[58]; X3 ^= w[59];
+            InverseLT(); Ib5(X0, X1, X2, X3);
+            X0 ^= w[52]; X1 ^= w[53]; X2 ^= w[54]; X3 ^= w[55];
+            InverseLT(); Ib4(X0, X1, X2, X3);
+            X0 ^= w[48]; X1 ^= w[49]; X2 ^= w[50]; X3 ^= w[51];
+            InverseLT(); Ib3(X0, X1, X2, X3);
+            X0 ^= w[44]; X1 ^= w[45]; X2 ^= w[46]; X3 ^= w[47];
+            InverseLT(); Ib2(X0, X1, X2, X3);
+            X0 ^= w[40]; X1 ^= w[41]; X2 ^= w[42]; X3 ^= w[43];
+            InverseLT(); Ib1(X0, X1, X2, X3);
+            X0 ^= w[36]; X1 ^= w[37]; X2 ^= w[38]; X3 ^= w[39];
+            InverseLT(); Ib0(X0, X1, X2, X3);
+            X0 ^= w[32]; X1 ^= w[33]; X2 ^= w[34]; X3 ^= w[35];
+            InverseLT(); Ib7(X0, X1, X2, X3);
+            X0 ^= w[28]; X1 ^= w[29]; X2 ^= w[30]; X3 ^= w[31];
+            InverseLT(); Ib6(X0, X1, X2, X3);
+            X0 ^= w[24]; X1 ^= w[25]; X2 ^= w[26]; X3 ^= w[27];
+            InverseLT(); Ib5(X0, X1, X2, X3);
+            X0 ^= w[20]; X1 ^= w[21]; X2 ^= w[22]; X3 ^= w[23];
+            InverseLT(); Ib4(X0, X1, X2, X3);
+            X0 ^= w[16]; X1 ^= w[17]; X2 ^= w[18]; X3 ^= w[19];
+            InverseLT(); Ib3(X0, X1, X2, X3);
+            X0 ^= w[12]; X1 ^= w[13]; X2 ^= w[14]; X3 ^= w[15];
+            InverseLT(); Ib2(X0, X1, X2, X3);
+            X0 ^= w[8]; X1 ^= w[9]; X2 ^= w[10]; X3 ^= w[11];
+            InverseLT(); Ib1(X0, X1, X2, X3);
+            X0 ^= w[4]; X1 ^= w[5]; X2 ^= w[6]; X3 ^= w[7];
+            InverseLT(); Ib0(X0, X1, X2, X3);
+
+            ToBytes((uint)(X0 ^ w[0]), output, outOff);
+            ToBytes((uint)(X1 ^ w[1]), output, outOff + 4);
+            ToBytes((uint)(X2 ^ w[2]), output, outOff + 8);
+            ToBytes((uint)(X3 ^ w[3]), output, outOff + 12);
+        }
+
+        public static void InverseLT()
+        {
+            int x2 = RotateRight(X2, 22) ^ X3 ^ (X1 << 7);
+            int x0 = RotateRight(X0, 5) ^ X1 ^ X3;
+            int x3 = RotateRight(X3, 7);
+            int x1 = RotateRight(X1, 1);
+            X3 = x3 ^ x2 ^ x0 << 3;
+            X1 = x1 ^ x0 ^ x2;
+            X2 = RotateRight(x2, 3);
+            X0 = RotateRight(x0, 13);
+        }
+
+        public static void Ib0(int a, int b, int c, int d)
+        {
+            int t1 = ~a;
+            int t2 = a ^ b;
+            int t4 = d ^ (t1 | t2);
+            int t5 = c ^ t4;
+            X2 = t2 ^ t5;
+            int t8 = t1 ^ (d & t2);
+            X1 = t4 ^ (X2 & t8);
+            X3 = (a & t4) ^ (t5 | X1);
+            X0 = X3 ^ (t5 ^ t8);
+        }
+
+        public static void Ib1(int a, int b, int c, int d)
+        {
+            int t1 = b ^ d;
+            int t3 = a ^ (b & t1);
+            int t4 = t1 ^ t3;
+            X3 = c ^ t4;
+            int t7 = b ^ (t1 & t3);
+            int t8 = X3 | t7;
+            X1 = t3 ^ t8;
+            int t10 = ~X1;
+            int t11 = X3 ^ t7;
+            X0 = t10 ^ t11;
+            X2 = t4 ^ (t10 | t11);
+        }
+
+        public static void Ib2(int a, int b, int c, int d)
+        {
+            int t1 = b ^ d;
+            int t2 = ~t1;
+            int t3 = a ^ c;
+            int t4 = c ^ t1;
+            int t5 = b & t4;
+            X0 = t3 ^ t5;
+            int t7 = a | t2;
+            int t8 = d ^ t7;
+            int t9 = t3 | t8;
+            X3 = t1 ^ t9;
+            int t11 = ~t4;
+            int t12 = X0 | X3;
+            X1 = t11 ^ t12;
+            X2 = (d & t11) ^ (t3 ^ t12);
+        }
+
+        public static void Ib3(int a, int b, int c, int d)
+        {
+            int t1 = a | b;
+            int t2 = b ^ c;
+            int t3 = b & t2;
+            int t4 = a ^ t3;
+            int t5 = c ^ t4;
+            int t6 = d | t4;
+            X0 = t2 ^ t6;
+            int t8 = t2 | t6;
+            int t9 = d ^ t8;
+            X2 = t5 ^ t9;
+            int t11 = t1 ^ t9;
+            int t12 = X0 & t11;
+            X3 = t4 ^ t12;
+            X1 = X3 ^ (X0 ^ t11);
+        }
+
+        public static void Ib4(int a, int b, int c, int d)
+        {
+            int t1 = c | d;
+            int t2 = a & t1;
+            int t3 = b ^ t2;
+            int t4 = a & t3;
+            int t5 = c ^ t4;
+            X1 = d ^ t5;
+            int t7 = ~a;
+            int t8 = t5 & X1;
+            X3 = t3 ^ t8;
+            int t10 = X1 | t7;
+            int t11 = d ^ t10;
+            X0 = X3 ^ t11;
+            X2 = (t3 & t11) ^ (X1 ^ t7);
+        }
+
+        public static void Ib5(int a, int b, int c, int d)
+        {
+            int t1 = ~c;
+            int t2 = b & t1;
+            int t3 = d ^ t2;
+            int t4 = a & t3;
+            int t5 = b ^ t1;
+            X3 = t4 ^ t5;
+            int t7 = b | X3;
+            int t8 = a & t7;
+            X1 = t3 ^ t8;
+            int t10 = a | d;
+            int t11 = t1 ^ t7;
+            X0 = t10 ^ t11;
+            X2 = (b & t10) ^ (t4 | (a ^ c));
+        }
+
+        public static void Ib6(int a, int b, int c, int d)
+        {
+            int t1 = ~a;
+            int t2 = a ^ b;
+            int t3 = c ^ t2;
+            int t4 = c | t1;
+            int t5 = d ^ t4;
+            X1 = t3 ^ t5;
+            int t7 = t3 & t5;
+            int t8 = t2 ^ t7;
+            int t9 = b | t8;
+            X3 = t5 ^ t9;
+            int t11 = b | X3;
+            X0 = t8 ^ t11;
+            X2 = (d & t1) ^ (t3 ^ t11);
+        }
+
+        public static void Ib7(int a, int b, int c, int d)
+        {
+            int t3 = c | (a & b);
+            int t4 = d & (a | b);
+            X3 = t3 ^ t4;
+            int t6 = ~d;
+            int t7 = b ^ t4;
+            int t9 = t7 | (X3 ^ t6);
+            X1 = a ^ t9;
+            X0 = (c ^ t7) ^ (d | X1);
+            X2 = (t3 ^ X1) ^ (X0 ^ (a & X3));
+        }
+
+        public static int RotateRight(int i, int distance)
+        {
+            return (int)BitOperations.RotateRight((uint)i, distance);
         }
     }
 }

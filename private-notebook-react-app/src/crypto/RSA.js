@@ -32,6 +32,7 @@ export const genKey = (l) => {
 //   var encodedCipherText = bigInt(encodedMsg).modPow(e, n)
 //   return decode(encodedCipherText)
 // }
+
 // cipherText: base64 string, d: string, n: string
 export const RSADecrypt = (cipherText, d, n) => {
   var encodedCipherText = encode(cipherText)
