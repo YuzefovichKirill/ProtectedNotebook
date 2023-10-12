@@ -1,12 +1,14 @@
 import React, { useContext, useRef } from "react"
 import { useNavigate } from "react-router-dom"
 import "./form.css"
-import AuthService from "../services/AuthService"
 import { AuthContext } from "../auth-context"
+import { RSAContext } from '../rsa-context';
+import { genKey, defaultLength } from '../crypto/RSA'
+import AuthService from "../services/AuthService"
 
 const Login = () => {
   const {setUserId} = useContext(AuthContext)
-
+  const { setRSAKey, setRSAModule } = useContext(RSAContext)
   var navigate = useNavigate()
   const authService = new AuthService()
 
@@ -17,6 +19,17 @@ const Login = () => {
     password: ''
   }
 
+  const changeRSAKeys = (userId) => {
+    var { e, n, d } = genKey(defaultLength)
+    const body = {
+      RSAKey: e,
+      module: n
+    }
+    setRSAKey(d)
+    setRSAModule(n)
+    authService.changeRSAKey(userId, body)
+  }
+
   const login = (event) => {
     event.preventDefault()
     loginForm.email = email.current.value
@@ -25,6 +38,7 @@ const Login = () => {
     authService.login(loginForm)
       .then((userId) => {
         setUserId(userId.data)
+        changeRSAKeys(userId.data)
         navigate('/files/list' , { replace: true}) 
       })
       .catch((error) => alert(error.response.data))

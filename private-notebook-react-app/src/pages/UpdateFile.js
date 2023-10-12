@@ -2,12 +2,16 @@ import React, { useState, useEffect, useContext, useRef } from "react"
 import FileService from "../services/FileService"
 import { useLocation, useNavigate } from "react-router-dom"
 import { AuthContext } from "../auth-context"
+import { RSAContext } from "../rsa-context"
+import { RSADecrypt } from "../crypto/RSA"
+import Serpent from "../crypto/Serpent"
 
 const UpdateFile = () => {
   var navigate = useNavigate()
   var location = useLocation()
   var filename = location.state.filename
   var { userId } = useContext(AuthContext)
+  const { RSAKey, RSAModule } = useContext(RSAContext)
   const fileService = new FileService()
   const content = useRef(null)
   var [file, setFile] = useState()
@@ -18,7 +22,12 @@ const UpdateFile = () => {
       filename
     }
     fileService.getFile(userId, body)
-      .then((_file) => setFile(_file.data))
+      .then((_file) => {
+        const sessionKey = RSADecrypt(_file.data.sessionKey, RSAKey, RSAModule)
+        var serpent = new Serpent()
+        const content = serpent.Decrypt(sessionKey, _file.data.iv, _file.data.content)
+        setFile(content)
+      })
       .catch((error) => alert(error.response.data))	
   }, [userId, filename]) 
   
@@ -48,7 +57,7 @@ const UpdateFile = () => {
         <div className="form-row">
           <div className="input-data">
             <label>Content</label>
-            <input ref={content} defaultValue={file?.content} type="text" required/>
+            <input ref={content} defaultValue={file} type="text" required/>
           </div>
         </div>
         <div className="submit-button">

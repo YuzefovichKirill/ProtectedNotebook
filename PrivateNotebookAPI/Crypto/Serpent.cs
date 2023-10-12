@@ -39,6 +39,7 @@ namespace PrivateNotebookAPI.Crypto
                 Array.Copy(xor, 0, ct, 16*i, 16);
                 Array.Copy(encryptedIV, prevEncryptedIV, 16);
             }
+
             //EncryptBlock(pt, 0, ct, 0);
             /*DecryptBlock(ct, 0, pt2, 0);*/
             /*var pt2 = new byte[len];

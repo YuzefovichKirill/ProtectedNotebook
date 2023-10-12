@@ -9,7 +9,7 @@ import AuthService from './services/AuthService'
 const Navbar = () => {
   const { userId, setUserId } = useContext(AuthContext)
   const { setRSAKey, setRSAModule } = useContext(RSAContext)
-  var authService = new AuthService()
+  const authService = new AuthService()
 
   const removeUser = (event) => {
     event.preventDefault()
