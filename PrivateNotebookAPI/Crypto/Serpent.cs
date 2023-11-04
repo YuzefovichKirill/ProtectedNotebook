@@ -11,7 +11,7 @@ namespace PrivateNotebookAPI.Crypto
         private const int PHI = unchecked((int)0x9E3779B9);
         private static int X0, X1, X2, X3;
         private static int[] w = new int[(ROUNDS + 1) * 4];
-        private static readonly int KeyLength = 128; // 128, 192, 256
+        private static readonly int KeyLength = 128;
         private static readonly int KeyLengthBytes = 16;
         
         public static (string, string) Encrypt(BigInteger sessionKey, string content)
@@ -39,19 +39,6 @@ namespace PrivateNotebookAPI.Crypto
                 Array.Copy(xor, 0, ct, 16*i, 16);
                 Array.Copy(encryptedIV, prevEncryptedIV, 16);
             }
-
-            //EncryptBlock(pt, 0, ct, 0);
-            /*DecryptBlock(ct, 0, pt2, 0);*/
-            /*var pt2 = new byte[len];
-            prevEncryptedIV = ivBigInt.ToByteArray();
-            encryptedIV = ivBigInt.ToByteArray();
-            for (int i = 0; i < iterationsNum; i++)
-            {
-                DecryptBlock(prevEncryptedIV, 0, encryptedIV, 0);
-                var xor = XorBytes(encryptedIV, ct.Skip(i * 16).Take(16).ToArray());
-                Array.Copy(xor, pt2, 16);
-                Array.Copy(encryptedIV, prevEncryptedIV, 16);
-            }*/
 
             return (Convert.ToBase64String(iv), Convert.ToBase64String(ct));
         }
@@ -89,7 +76,7 @@ namespace PrivateNotebookAPI.Crypto
             }
 
 
-            int amount = w.Length; //(ROUNDS + 1) * 4
+            int amount = w.Length;
             for (int i = 8; i < 16; i++)
             {
                 kPad[i] = RotateLeft(kPad[i - 8] ^ kPad[i - 5] ^ kPad[i - 3] ^ kPad[i - 1] ^ PHI ^ (i - 8), 11);

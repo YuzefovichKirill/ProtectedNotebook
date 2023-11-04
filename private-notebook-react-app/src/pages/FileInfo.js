@@ -27,7 +27,7 @@ const FileInfo = () => {
         setFile(content)
       })
       .catch((error) => {
-        alert(JSON.stringify(error))
+        alert(error.response.data)
       })
   }, [userId, filename])
 

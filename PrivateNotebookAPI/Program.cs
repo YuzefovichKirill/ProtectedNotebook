@@ -63,7 +63,7 @@ namespace PrivateNotebookAPI
 
             app.UseCors("AllowAll");
             app.UseRouting();
-            app.UseHttpsRedirection();
+            //app.UseHttpsRedirection();
             app.UseEndpoints(endpoints => endpoints.MapControllers());
             app.Run();
         }

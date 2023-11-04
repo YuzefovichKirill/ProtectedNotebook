@@ -56,6 +56,5 @@ export const decode = (code) => {
     bytes.push(byte)
   }
   bytes = bytes.reverse()
-  //console.log('key bytes: ', bytes)
   return bytes
 }

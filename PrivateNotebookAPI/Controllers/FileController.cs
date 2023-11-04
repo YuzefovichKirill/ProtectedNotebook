@@ -3,7 +3,6 @@ using PrivateNotebookAPI.Crypto;
 using PrivateNotebookAPI.Models;
 using PrivateNotebookAPI.Persistence;
 using System.Numerics;
-using System.Text;
 
 namespace PrivateNotebookAPI.Controllers
 {
