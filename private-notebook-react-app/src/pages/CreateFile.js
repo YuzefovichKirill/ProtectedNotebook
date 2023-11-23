@@ -5,7 +5,6 @@ import { AuthContext } from "../auth-context"
 
 const CreateFile = () => {
   const navigate = useNavigate()
-  var { userId } = useContext(AuthContext)
   const fileService = new FileService()
   const filename = useRef(null)
   const content = useRef(null)
@@ -19,7 +18,7 @@ const CreateFile = () => {
     file.filename = filename.current.value
     file.content = content.current.value
 
-    fileService.createFile(userId, file)
+    fileService.createFile(file)
       .then(() => {
         navigate('/files/list', { replace: true})
       })

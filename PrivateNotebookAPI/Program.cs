@@ -2,6 +2,11 @@ using PrivateNotebookAPI.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
+using PrivateNotebookAPI.JWT;
 
 namespace PrivateNotebookAPI
 {
@@ -37,7 +42,29 @@ namespace PrivateNotebookAPI
                 return settings;
             };
 
-            // ###################
+            // JWT token configuration 
+            var tokenKey = configuration.GetValue<string>("TokenKey");
+            var key = Encoding.ASCII.GetBytes(tokenKey);
+            services
+                .AddAuthentication(scheme =>
+                {
+                    scheme.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                    scheme.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                })
+                .AddJwtBearer(options =>
+                {
+                    options.RequireHttpsMetadata = false;
+                    options.SaveToken = true;
+                    options.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidateIssuerSigningKey = true,
+                        IssuerSigningKey = new SymmetricSecurityKey(key),
+                        ValidateIssuer = false,
+                        ValidateAudience = false
+                    };
+                });
+            services.AddSingleton<IJWTAuthenticationManager>(new JWTAuthenticationManager(tokenKey));
+
             var app = builder.Build();
 
             using (var scope = app.Services.CreateScope())
@@ -63,7 +90,10 @@ namespace PrivateNotebookAPI
 
             app.UseCors("AllowAll");
             app.UseRouting();
-            //app.UseHttpsRedirection();
+
+            app.UseAuthentication();
+            app.UseAuthorization();
+            app.UseHttpsRedirection();
             app.UseEndpoints(endpoints => endpoints.MapControllers());
             app.Run();
         }

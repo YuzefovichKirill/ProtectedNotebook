@@ -3,6 +3,7 @@ using PrivateNotebookAPI.Crypto;
 using PrivateNotebookAPI.Models;
 using PrivateNotebookAPI.Persistence;
 using System.Numerics;
+using System.Security.Claims;
 
 namespace PrivateNotebookAPI.Controllers
 {
@@ -16,12 +17,14 @@ namespace PrivateNotebookAPI.Controllers
             _authDbContext = authDbContext;
 
         [HttpPost]
-        [Route("{id}")]
-        public async Task<ActionResult> CreateFile(Guid id, [FromBody] CreateFile createFile)
+        public async Task<ActionResult> CreateFile([FromBody] CreateFile createFile)
         {
-            string path = @$"UserFiles\{id}\{createFile.Filename}";
-            var user = _authDbContext.Users.FirstOrDefault(u => u.Id == id);
+            var identity = HttpContext.User.Identity as ClaimsIdentity;
+            var email = identity.FindFirst(ClaimTypes.Email).Value;
+            var user = _authDbContext.Users.FirstOrDefault(u => u.Email == email);
             if (user is null) return NotFound("User was not found");
+
+            string path = @$"UserFiles\{user.Id}\{createFile.Filename}";
             if (System.IO.File.Exists(path)) return BadRequest("File with such name already exists");
             // create file
             using (StreamWriter sw = System.IO.File.CreateText(path))
@@ -32,12 +35,14 @@ namespace PrivateNotebookAPI.Controllers
         }
 
         [HttpPut]
-        [Route("{id}")]
-        public async Task<ActionResult<GetFileVm>> GetFile(Guid id, [FromBody] GetFile getFile)
+        public async Task<ActionResult<GetFileVm>> GetFile([FromBody] GetFile getFile)
         {
-            string path = @$"UserFiles\{id}\{getFile.Filename}";
-            var user = _authDbContext.Users.FirstOrDefault(u => u.Id == id);
+            var identity = HttpContext.User.Identity as ClaimsIdentity;
+            var email = identity.FindFirst(ClaimTypes.Email).Value;
+            var user = _authDbContext.Users.FirstOrDefault(u => u.Email == email);
             if (user is null) return NotFound("User was not found");
+
+            string path = @$"UserFiles\{user.Id}\{getFile.Filename}";
             if (!System.IO.File.Exists(path)) return NotFound("File with such name does not exist");
             // read file and send content encr by session key
             string content = System.IO.File.ReadAllText(path);
@@ -49,12 +54,14 @@ namespace PrivateNotebookAPI.Controllers
         }
 
         [HttpGet]
-        [Route("{id}")]
-        public async Task<ActionResult<GetFileListVm>> GetFileList(Guid id)
+        public async Task<ActionResult<GetFileListVm>> GetFileList()
         {
-            string path = @$"UserFiles\{id}";
-            var user = _authDbContext.Users.FirstOrDefault(u => u.Id == id);
+            var identity = HttpContext.User.Identity as ClaimsIdentity;
+            var email = identity.FindFirst(ClaimTypes.Email).Value;
+            var user = _authDbContext.Users.FirstOrDefault(u => u.Email == email);
             if (user is null) return NotFound("User was not found");
+
+            string path = @$"UserFiles\{user.Id}";
             if (!System.IO.Directory.Exists(path)) return NotFound("File with such name does not exist");
             var files = Directory.GetFiles(path);
             List<string> filenames = new List<string>();
@@ -64,12 +71,14 @@ namespace PrivateNotebookAPI.Controllers
         }
 
         [HttpPatch]
-        [Route("{id}")]
-        public async Task<ActionResult> PatchFile(Guid id, [FromBody] PatchFile patchFile)
+        public async Task<ActionResult> PatchFile([FromBody] PatchFile patchFile)
         {
-            string path = @$"UserFiles\{id}\{patchFile.Filename}";
-            var user = _authDbContext.Users.FirstOrDefault(u => u.Id == id);
+            var identity = HttpContext.User.Identity as ClaimsIdentity;
+            var email = identity.FindFirst(ClaimTypes.Email).Value;
+            var user = _authDbContext.Users.FirstOrDefault(u => u.Email == email);
             if (user is null) return NotFound("User was not found");
+
+            string path = @$"UserFiles\{user.Id}\{patchFile.Filename}";
             if (!System.IO.File.Exists(path)) return NotFound("File with such name does not exist");
             // change file content
             System.IO.File.WriteAllText(path, patchFile.Content);
@@ -77,12 +86,15 @@ namespace PrivateNotebookAPI.Controllers
         }
 
         [HttpDelete]
-        [Route("{id}&{filename}")]
-        public async Task<ActionResult> DeleteFile(Guid id, string filename)
+        [Route("{filename}")]
+        public async Task<ActionResult> DeleteFile(string filename)
         {
-            string path = @$"UserFiles\{id}\{filename}";
-            var user = _authDbContext.Users.FirstOrDefault(u => u.Id == id);
+            var identity = HttpContext.User.Identity as ClaimsIdentity;
+            var email = identity.FindFirst(ClaimTypes.Email).Value;
+            var user = _authDbContext.Users.FirstOrDefault(u => u.Email == email);
             if (user is null) return NotFound("User was not found");
+
+            string path = @$"UserFiles\{user.Id}\{filename}";
             if (!System.IO.File.Exists(path)) return NotFound("File with such name does not exist");
             // delete file
             System.IO.File.Delete(path);

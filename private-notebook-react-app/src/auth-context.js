@@ -3,22 +3,22 @@ import React, { useState, useEffect } from "react";
 export const AuthContext = React.createContext()
 
 const AuthProvider = ({children}) => {
-  const [userId, setUserId] = useState(localStorage.getItem('userId'))
+  const [jwtToken, setJwtToken] = useState(localStorage.getItem('jwtToken'))
 
   useEffect(() => {
-    if (userId === null) {
-      localStorage.removeItem('userId')
+    if (jwtToken === null) {
+      localStorage.removeItem('jwtToken')
     }
     else {
-      localStorage.setItem('userId', userId)
+      localStorage.setItem('jwtToken', jwtToken)
     }
-  }, [userId])
+  }, [jwtToken])
 
   return (
     <AuthContext.Provider
       value={{
-        userId,
-        setUserId
+        jwtToken,
+        setJwtToken
       }}>
       {children}
     </AuthContext.Provider>

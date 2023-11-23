@@ -3,9 +3,9 @@ import { Navigate, Outlet } from "react-router-dom";
 import { AuthContext } from "./auth-context";
 
 const RequireAuth = () => {
-  const {userId} = useContext(AuthContext);
+  const { jwtToken } = useContext(AuthContext);
 
-  return userId ? <Outlet/> : <Navigate to="/login"/>
+  return jwtToken ? <Outlet/> : <Navigate to="/login"/>
 
 }
 

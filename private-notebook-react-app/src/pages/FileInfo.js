@@ -9,17 +9,17 @@ import Serpent from "../crypto/Serpent"
 const FileInfo = () => {
   var location = useLocation()
   var filename = location.state.filename
-  var { userId } = useContext(AuthContext)
+  var { jwtToken } = useContext(AuthContext)
   const { RSAKey, RSAModule } = useContext(RSAContext)
   const fileService = new FileService()
   var [file, setFile] = useState();
   
   useEffect(() => {
-    if (userId === null || filename === undefined) return 
+    if (jwtToken === null || filename === undefined) return 
     const body = {
       filename
     }
-    fileService.getFile(userId, body)
+    fileService.getFile(body)
       .then(_file => {      
         const sessionKey = RSADecrypt(_file.data.sessionKey, RSAKey, RSAModule)
         var serpent = new Serpent()
@@ -29,7 +29,7 @@ const FileInfo = () => {
       .catch((error) => {
         alert(error.response.data)
       })
-  }, [userId, filename])
+  }, [filename])
 
   return(
     <div className="container">

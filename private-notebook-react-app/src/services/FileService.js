@@ -1,30 +1,27 @@
-import axios from "axios";
+import privateNotebookAPIInstance from "../auth-interceptor";
 
 export default class FileService {
   constructor() {
-    this.AuthAPI = axios.create({
-      baseURL: "https://localhost:7090/api/files/"
-      //baseURL: "https://10.160.19.171:7090/api/files/"
-    })
+    this.AuthAPI = privateNotebookAPIInstance
   }
 
-  createFile(id, body) {
-    return this.AuthAPI.post(`${id}`, body)
+  createFile(body) {
+    return this.AuthAPI.post(`files`, body)
   }
 
-  getFile(id, body) {
-    return this.AuthAPI.put(`${id}`, body)
+  getFile(body) {
+    return this.AuthAPI.put(`files`, body)
   }
 
-  getFileList(id) {
-    return this.AuthAPI.get(`${id}`)
+  getFileList() {
+    return this.AuthAPI.get(`files`)
   }
 
-  patchFile(id, body) {
-    return this.AuthAPI.patch(`${id}`, body)
+  patchFile(body) {
+    return this.AuthAPI.patch(`files`, body)
   }
 
-  deleteFile(id, filename) {
-    return this.AuthAPI.delete(`${id}&${filename}`)
+  deleteFile(filename) {
+    return this.AuthAPI.delete(`files/${filename}`)
   }
 }

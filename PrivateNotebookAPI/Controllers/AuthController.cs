@@ -4,6 +4,8 @@ using PrivateNotebookAPI.Models;
 using PrivateNotebookAPI.Persistence;
 using PrivateNotebookAPI.Crypto;
 using Microsoft.EntityFrameworkCore;
+using PrivateNotebookAPI.JWT;
+using System.Security.Claims;
 
 namespace PrivateNotebookAPI.Controllers
 {
@@ -12,9 +14,14 @@ namespace PrivateNotebookAPI.Controllers
     public class AuthController : ControllerBase
     {
         private IAuthDbContext _authDbContext;
+        private readonly IJWTAuthenticationManager _jwtAuthenticationManager;
 
-        public AuthController(IAuthDbContext authDbContext) =>
+        public AuthController(IAuthDbContext authDbContext, IJWTAuthenticationManager jwtAuthenticationManager)
+        {
             _authDbContext = authDbContext;
+            _jwtAuthenticationManager = jwtAuthenticationManager;
+        }
+
 
         [HttpPost]
         [Route("login")]
@@ -24,7 +31,9 @@ namespace PrivateNotebookAPI.Controllers
             if (user is null) return NotFound("Wrong email or password");
             if (user.PasswordHash != Hash.GetHashString(login.Password)) return BadRequest("Wrong email or password");
 
-            return Ok(user.Id);
+            var token = await _jwtAuthenticationManager.CreateJWT(user);
+
+            return Ok(token);
         }
 
         [HttpPost]
@@ -35,24 +44,33 @@ namespace PrivateNotebookAPI.Controllers
             if (user is not null) return BadRequest("This Email is already registered");
 
             Guid id = Guid.NewGuid();
-            var passwordHash = _authDbContext.Users.Add(new User()
+            _authDbContext.Users.Add(new User()
             {
                 Id = id,
                 Email = register.Email,
                 PasswordHash = Hash.GetHashString(register.Password),
             });
+            await _authDbContext.SaveChangesAsync();
+            user = _authDbContext.Users.FirstOrDefault(u => u.Email == register.Email);
+            if (user is null) return BadRequest("User wasn't registered");
+
             string path = $@"UserFiles\{id}";
             Directory.CreateDirectory(path);
-            await _authDbContext.SaveChangesAsync();
 
-            return Ok(id);
+
+            var token = await _jwtAuthenticationManager.CreateJWT(user);
+            return Ok(token);
         }
 
+        
         [HttpPatch]
-        [Route("change-rsa-key/{id}")]
-        public async Task<ActionResult> ChangeRSAKey(Guid id, [FromBody] ChangeRSAKey changeRSAKey)
+        [Route("change-rsa-key")]
+        public async Task<ActionResult> ChangeRSAKey([FromBody] ChangeRSAKey changeRSAKey)
         {
-            var user = _authDbContext.Users.FirstOrDefault(u => u.Id == id);
+            var identity = HttpContext.User.Identity as ClaimsIdentity;
+            var email = identity.FindFirst(ClaimTypes.Email).Value;
+            var user = _authDbContext.Users.FirstOrDefault(u => u.Email == email);
+
             if (user is null) return NotFound("User was not found");
             user.RSAOpenKey = changeRSAKey.RSAKey;
             user.RSAModule = changeRSAKey.Module;

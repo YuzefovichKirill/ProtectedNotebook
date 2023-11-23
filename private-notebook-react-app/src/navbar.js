@@ -7,13 +7,13 @@ import { genKey, defaultLength } from './crypto/RSA'
 import AuthService from './services/AuthService'
 
 const Navbar = () => {
-  const { userId, setUserId } = useContext(AuthContext)
+  const { jwtToken, setJwtToken } = useContext(AuthContext)
   const { setRSAKey, setRSAModule } = useContext(RSAContext)
   const authService = new AuthService()
 
   const removeUser = (event) => {
     event.preventDefault()
-    setUserId(null)
+    setJwtToken(null)
   } 
 
   const changeRSAKeys = (event) => {
@@ -25,7 +25,7 @@ const Navbar = () => {
     }
     setRSAKey(d)
     setRSAModule(n)
-    authService.changeRSAKey(userId, body)
+    authService.changeRSAKey(body)
   }
   return (
     <nav>
@@ -40,8 +40,8 @@ const Navbar = () => {
           Notebooks
         </NavLink>
 
-        {(userId !== null) && <button onClick={removeUser}>Logout</button>}
-        {(userId !== null) && <button onClick={changeRSAKeys}>Change RSA keys</button>}
+        {(jwtToken !== null) && <button onClick={removeUser}>Logout</button>}
+        {(jwtToken !== null) && <button onClick={changeRSAKeys}>Change RSA keys</button>}
       </div>
     </nav>
   )

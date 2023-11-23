@@ -4,25 +4,25 @@ import { Link } from "react-router-dom"
 import { AuthContext } from "../auth-context"
 
 const FileList = () => {
-  var { userId } = useContext(AuthContext)
+  var { jwtToken } = useContext(AuthContext)
   const fileService = new FileService()
   var [filenames, setFilenames] = useState([]);
   
   useEffect(() => {
-    if (userId === null) return 
-    fileService.getFileList(userId)
+    if (jwtToken === null) return 
+    fileService.getFileList()
       .then(_filenames => {
         setFilenames(_filenames.data.filenames)
       })
       .catch((error) => {
         alert(error.response.data)
       })	  
-  }, [userId])     
+  }, [])     
 
   const handleDeleteFile = (name) => {
-    fileService.deleteFile(userId, name)
+    fileService.deleteFile(name)
       .then(() => {
-        fileService.getFileList(userId)
+        fileService.getFileList()
           .then(_filenames => setFilenames(_filenames.data.filenames))
           .catch((error) => alert(error.response.data))
       })

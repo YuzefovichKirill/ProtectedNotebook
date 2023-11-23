@@ -7,7 +7,7 @@ import { genKey, defaultLength } from '../crypto/RSA'
 import AuthService from "../services/AuthService"
 
 const Login = () => {
-  const {setUserId} = useContext(AuthContext)
+  const { setJwtToken } = useContext(AuthContext)
   const { setRSAKey, setRSAModule } = useContext(RSAContext)
   var navigate = useNavigate()
   const authService = new AuthService()
@@ -19,7 +19,7 @@ const Login = () => {
     password: ''
   }
 
-  const changeRSAKeys = (userId) => {
+  const changeRSAKeys = () => {
     var { e, n, d } = genKey(defaultLength)
     const body = {
       RSAKey: e,
@@ -27,7 +27,7 @@ const Login = () => {
     }
     setRSAKey(d)
     setRSAModule(n)
-    authService.changeRSAKey(userId, body)
+    authService.changeRSAKey(body)
   }
 
   const login = (event) => {
@@ -35,13 +35,17 @@ const Login = () => {
     loginForm.email = email.current.value
     loginForm.password = password.current.value
 
+    console.log(1)
     authService.login(loginForm)
-      .then((userId) => {
-        setUserId(userId.data)
-        changeRSAKeys(userId.data)
+      .then((jwtToken) => {
+        console.log(2)
+        setJwtToken(jwtToken.data)
+        changeRSAKeys()
         navigate('/files/list' , { replace: true}) 
       })
-      .catch((error) => alert(error.response.data))
+      //.catch((error) => alert(error.response.data))
+      .catch((error) => alert(JSON.stringify(error)))
+    console.log(3)
   }
 
   return (
