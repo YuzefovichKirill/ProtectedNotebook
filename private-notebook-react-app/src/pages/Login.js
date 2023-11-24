@@ -5,6 +5,7 @@ import { AuthContext } from "../auth-context"
 import { RSAContext } from '../rsa-context';
 import { genKey, defaultLength } from '../crypto/RSA'
 import AuthService from "../services/AuthService"
+import cyrb53 from "../crypto/Hash";
 
 const Login = () => {
   const { setJwtToken } = useContext(AuthContext)
@@ -32,20 +33,19 @@ const Login = () => {
 
   const login = (event) => {
     event.preventDefault()
+    let passwordHash = password.current.value
+    for(let i = 0; i < 200; i++){
+      passwordHash = cyrb53(passwordHash)
+    }
     loginForm.email = email.current.value
-    loginForm.password = password.current.value
+    loginForm.password = passwordHash.toString(16)
 
-    console.log(1)
     authService.login(loginForm)
       .then((jwtToken) => {
-        console.log(2)
         setJwtToken(jwtToken.data)
-        changeRSAKeys()
         navigate('/files/list' , { replace: true}) 
       })
-      //.catch((error) => alert(error.response.data))
-      .catch((error) => alert(JSON.stringify(error)))
-    console.log(3)
+      .catch((error) => alert(error.response.data))
   }
 
   return (
