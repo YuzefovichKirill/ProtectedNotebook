@@ -4,6 +4,9 @@ using PrivateNotebookAPI.Models;
 using PrivateNotebookAPI.Persistence;
 using System.Numerics;
 using System.Security.Claims;
+using static System.Net.Mime.MediaTypeNames;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace PrivateNotebookAPI.Controllers
 {
@@ -11,10 +14,15 @@ namespace PrivateNotebookAPI.Controllers
     [ApiController]
     public class FileController : ControllerBase
     {
-        private IAuthDbContext _authDbContext;
+        private readonly IAuthDbContext _authDbContext;
+        private readonly string cipherKey;
 
-        public FileController(IAuthDbContext authDbContext) =>
+        public FileController(IAuthDbContext authDbContext,
+                              IConfiguration configuration)
+        {
             _authDbContext = authDbContext;
+            cipherKey = configuration.GetValue<string>("CipherKey");
+        }
 
         [HttpPost]
         public async Task<ActionResult> CreateFile([FromBody] CreateFile createFile)
@@ -27,10 +35,15 @@ namespace PrivateNotebookAPI.Controllers
             string path = @$"UserFiles\{user.Id}\{createFile.Filename}";
             if (System.IO.File.Exists(path)) return BadRequest("File with such name already exists");
             // create file
-            using (StreamWriter sw = System.IO.File.CreateText(path))
-            {
-                sw.Write(createFile.Content);
-            }
+            using FileStream fileStream = new FileStream(path, FileMode.OpenOrCreate);
+            using Aes aes = Aes.Create();
+            byte[] key = Encoding.UTF8.GetBytes(cipherKey);
+            aes.Key = key;
+            aes.IV = key;
+            using CryptoStream cryptoStream = new CryptoStream(fileStream, aes.CreateEncryptor(), CryptoStreamMode.Write);
+            using StreamWriter encryptWriter = new StreamWriter(cryptoStream, Encoding.UTF8);
+            encryptWriter.WriteLine(createFile.Content);
+
             return NoContent();
         }
 
@@ -45,10 +58,18 @@ namespace PrivateNotebookAPI.Controllers
             string path = @$"UserFiles\{user.Id}\{getFile.Filename}";
             if (!System.IO.File.Exists(path)) return NotFound("File with such name does not exist");
             // read file and send content encr by session key
-            string content = System.IO.File.ReadAllText(path);
+            using FileStream fileStream = new FileStream(path, FileMode.OpenOrCreate);
+            using Aes aes = Aes.Create();
+            byte[] key = Encoding.UTF8.GetBytes(cipherKey);
+            aes.Key = key;
+            aes.IV = key;
+            using CryptoStream cryptoStream = new CryptoStream(fileStream, aes.CreateDecryptor(), CryptoStreamMode.Read);
+            using StreamReader decryptReader = new StreamReader(cryptoStream, Encoding.UTF8);
+            var content = decryptReader.ReadToEnd();
+
             BigInteger sessionKey = Serpent.CreateSessionKey();
 
-            string encrSessionKey = RSA.Encrypt(user.RSAOpenKey, user.RSAModule, sessionKey);
+            string encrSessionKey = Crypto.RSA.Encrypt(user.RSAOpenKey, user.RSAModule, sessionKey);
             (string iv, string encrContent) = Serpent.Encrypt(sessionKey, content);
             return new GetFileVm() { SessionKey = encrSessionKey, IV = iv, Content = encrContent };
         }
@@ -81,7 +102,15 @@ namespace PrivateNotebookAPI.Controllers
             string path = @$"UserFiles\{user.Id}\{patchFile.Filename}";
             if (!System.IO.File.Exists(path)) return NotFound("File with such name does not exist");
             // change file content
-            System.IO.File.WriteAllText(path, patchFile.Content);
+            using FileStream fileStream = new FileStream(path, FileMode.Create);
+            using Aes aes = Aes.Create();
+            byte[] key = Encoding.UTF8.GetBytes(cipherKey);
+            aes.Key = key;
+            aes.IV = key;
+            using CryptoStream cryptoStream = new CryptoStream(fileStream, aes.CreateEncryptor(), CryptoStreamMode.Write);
+            using StreamWriter encryptWriter = new StreamWriter(cryptoStream, Encoding.UTF8);
+            encryptWriter.WriteLine(patchFile.Content);
+
             return NoContent();
         }
 

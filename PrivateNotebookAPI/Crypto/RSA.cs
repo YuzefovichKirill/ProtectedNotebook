@@ -1,6 +1,4 @@
 ﻿using System.Numerics;
-using System.Security.Cryptography.X509Certificates;
-using System.Text;
 
 namespace PrivateNotebookAPI.Crypto
 {
